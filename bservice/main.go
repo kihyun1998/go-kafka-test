@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/segmentio/kafka-go"
 )
@@ -11,15 +12,20 @@ func processMessage(msg []byte) []byte {
 	return append([]byte("Processed: "), msg...)
 }
 func main() {
+	broker := os.Getenv("KAFKA_BROKER")
+	if broker == "" {
+		broker = "localhost:9092"
+	}
+
 	reader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers: []string{"kafka:9092"},
+		Brokers: []string{broker},
 		Topic:   "topic-a-to-b",
 		GroupID: "group-b",
 	})
 	defer reader.Close()
 
 	writer := kafka.NewWriter(kafka.WriterConfig{
-		Brokers: []string{"kafka:9092"},
+		Brokers: []string{broker},
 		Topic:   "topic-b-to-c",
 	})
 	defer writer.Close()

@@ -3,14 +3,20 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 	"time"
 
 	"github.com/segmentio/kafka-go"
 )
 
 func main() {
+	broker := os.Getenv("KAFKA_BROKER")
+	if broker == "" {
+		broker = "localhost:9092"
+	}
+
 	writer := kafka.NewWriter(kafka.WriterConfig{
-		Brokers: []string{"kafka:9092"},
+		Brokers: []string{broker},
 		Topic:   "topic-a-to-b",
 	})
 	defer writer.Close()

@@ -3,13 +3,19 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/segmentio/kafka-go"
 )
 
 func main() {
+	broker := os.Getenv("KAFKA_BROKER")
+	if broker == "" {
+		broker = "localhost:9092"
+	}
+
 	reader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers: []string{"kafka:9092"},
+		Brokers: []string{broker},
 		Topic:   "topic-b-to-c",
 		GroupID: "group-c",
 	})
