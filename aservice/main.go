@@ -2,12 +2,22 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"os"
 	"time"
 
 	"github.com/segmentio/kafka-go"
 )
+
+type Candle struct {
+	Open   float64   `json:"open"`
+	High   float64   `json:"high"`
+	Low    float64   `json:"low"`
+	Close  float64   `json:"close"`
+	Volume int       `json:"volume"`
+	Time   time.Time `json:"time"`
+}
 
 func main() {
 	broker := os.Getenv("KAFKA_BROKER")
@@ -22,9 +32,24 @@ func main() {
 	defer writer.Close()
 
 	for {
-		err := writer.WriteMessages(context.Background(),
+		candle := Candle{
+			Open:   100.0,
+			High:   105.0,
+			Low:    98.0,
+			Close:  103.5,
+			Volume: 1000000,
+			Time:   time.Now(),
+		}
+
+		jsonData, err := json.Marshal(candle)
+		if err != nil {
+			log.Printf("Error marshaling JSON: %v", err)
+			continue
+		}
+
+		err = writer.WriteMessages(context.Background(),
 			kafka.Message{
-				Value: []byte("Hello from Service A !"),
+				Value: jsonData,
 			})
 		if err != nil {
 			log.Printf("Error sending message: %v", err)

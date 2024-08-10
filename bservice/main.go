@@ -2,14 +2,25 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"os"
+	"time"
 
 	"github.com/segmentio/kafka-go"
 )
 
-func processMessage(msg []byte) []byte {
-	return append([]byte("Processed: "), msg...)
+type Candle struct {
+	Open   float64   `json:"open"`
+	High   float64   `json:"high"`
+	Low    float64   `json:"low"`
+	Close  float64   `json:"close"`
+	Volume int       `json:"volume"`
+	Time   time.Time `json:"time"`
+}
+
+func processMessage() []byte {
+	return append([]byte("Processed: "))
 }
 func main() {
 	broker := os.Getenv("KAFKA_BROKER")
@@ -37,8 +48,17 @@ func main() {
 			continue
 		}
 
+		var candle Candle
+		err = json.Unmarshal(msg.Value, &candle)
+		if err != nil {
+			log.Printf("Error unmarshaling JSON: %v", err)
+			continue
+		}
+		log.Printf("Received candle data: Open=%.2f, High=%.2f, Low=%.2f, Close=%.2f, Volume=%d, Time=%v",
+			candle.Open, candle.High, candle.Low, candle.Close, candle.Volume, candle.Time)
+
 		log.Printf("Received from A: %s", string(msg.Value))
-		processMsg := processMessage(msg.Value)
+		processMsg := processMessage()
 
 		err = writer.WriteMessages(context.Background(),
 			kafka.Message{
